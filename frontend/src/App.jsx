@@ -1,7 +1,28 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = import.meta.env.VITE_API_URL;
+
+const fallbackShowcase = [
+  {
+    title: "Visual 1",
+    type: "Animated Music Visual",
+    video: "/videos/Visual-1.mp4",
+    spotifyUrl: "#",
+  },
+  {
+    title: "Visual 2",
+    type: "Spotify Canvas Loop",
+    video: "/videos/Visual-2.mp4",
+    spotifyUrl: "#",
+  },
+  {
+    title: "Visual 3",
+    type: "Animated Loop",
+    video: "/videos/Visual-3.mp4",
+    spotifyUrl: "#",
+  },
+];
 
 const reveal = {
   hidden: {
@@ -21,7 +42,8 @@ const reveal = {
 };
 
 function App() {
-  const [showcase, setShowcase] = useState([]);
+  const [showcase, setShowcase] = useState(fallbackShowcase);
+
   const [form, setForm] = useState({
     name: "",
     artist_name: "",
@@ -33,10 +55,29 @@ function App() {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
+    if (!API_URL) {
+      console.warn("VITE_API_URL is missing. Using local showcase fallback.");
+      return;
+    }
+
     fetch(`${API_URL}/api/showcase`)
-      .then((res) => res.json())
-      .then((data) => setShowcase(data))
-      .catch(() => setShowcase([]));
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error("Showcase request failed");
+        }
+        return res.json();
+      })
+      .then((data) => {
+        if (Array.isArray(data) && data.length > 0) {
+          setShowcase(data);
+        } else {
+          setShowcase(fallbackShowcase);
+        }
+      })
+      .catch((error) => {
+        console.warn("Backend showcase failed. Using fallback.", error);
+        setShowcase(fallbackShowcase);
+      });
   }, []);
 
   const handleChange = (e) => {
@@ -49,6 +90,11 @@ function App() {
   const sendContact = async (e) => {
     e.preventDefault();
     setStatus("Sending...");
+
+    if (!API_URL) {
+      setStatus("Backend URL is missing.");
+      return;
+    }
 
     try {
       const res = await fetch(`${API_URL}/api/contact`, {
@@ -78,7 +124,6 @@ function App() {
     }
   };
 
-  // 🟢 DRAG SCROLL (esto es lo importante)
   const enableDragScroll = (e) => {
     const slider = e.currentTarget;
     slider.dataset.isDown = "true";
@@ -120,33 +165,35 @@ function App() {
           <div className="logo">Lyrics to Frames</div>
           <a href="#contact">Start a Project</a>
         </nav>
-<motion.div
-  className="hero-content"
-  initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
-  animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-  transition={{ duration: 1.1, ease: "easeOut" }}
->
-  <p className="eyebrow">Music video animation studio</p>
 
-  <h1>
-    Music video animation &{" "}
-    <span className="text-accent">Spotify Canvas</span> for artists
-  </h1>
+        <motion.div
+          className="hero-content"
+          initial={{ opacity: 0, y: 40, filter: "blur(12px)" }}
+          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
+          transition={{ duration: 1.1, ease: "easeOut" }}
+        >
+          <p className="eyebrow">Music video animation studio</p>
 
-  <p className="hero-text">
-    Custom animated music videos, Spotify Canvas loops and visual storytelling
-    for artists who want their music to be seen, not just heard.
-  </p>
+          <h1>
+            Music video animation &{" "}
+            <span className="text-accent">Spotify Canvas</span> for artists
+          </h1>
 
-  <div className="hero-buttons">
-    <a href="#showcase" className="btn primary">
-      Watch visuals
-    </a>
-    <a href="#contact" className="btn secondary">
-      Start a project
-    </a>
-  </div>
-</motion.div>
+          <p className="hero-text">
+            Custom animated music videos, Spotify Canvas loops and visual
+            storytelling for artists who want their music to be seen, not just
+            heard.
+          </p>
+
+          <div className="hero-buttons">
+            <a href="#showcase" className="btn primary">
+              Watch visuals
+            </a>
+            <a href="#contact" className="btn secondary">
+              Start a project
+            </a>
+          </div>
+        </motion.div>
       </section>
 
       <motion.section
@@ -156,11 +203,12 @@ function App() {
         whileInView="visible"
         viewport={{ once: true, amount: 0.35 }}
       >
-       <p>
-  I create <span className="text-accent">music video animation</span> and{" "}
-  <span className="text-accent">Spotify Canvas loops</span> designed for artists.
-  Every frame is built around rhythm, emotion and the visual identity of a song.
-</p>
+        <p>
+          I create <span className="text-accent">music video animation</span>{" "}
+          and <span className="text-accent">Spotify Canvas loops</span> designed
+          for artists. Every frame is built around rhythm, emotion and the visual
+          identity of a song.
+        </p>
       </motion.section>
 
       <motion.section
@@ -173,7 +221,10 @@ function App() {
       >
         <div className="section-header">
           <p className="eyebrow">Selected visuals</p>
-          <h2> Discover <span className="text-accent">a new world</span> behind your songs </h2>
+          <h2>
+            Discover <span className="text-accent">a new world</span> behind
+            your songs
+          </h2>
         </div>
 
         <div
@@ -184,29 +235,31 @@ function App() {
           onMouseLeave={stopDragScroll}
         >
           {showcase.map((item, index) => (
-           <motion.a
-  href={item.spotifyUrl}
-  target="_blank"
-  rel="noreferrer"
-  className="visual-card carousel-card"
-  key={index}
-  initial={{ opacity: 0, y: 40 }}
-  whileInView={{ opacity: 1, y: 0 }}
-  viewport={{ once: true, amount: 0.3 }}
-  transition={{ duration: 0.7, delay: index * 0.08 }}
->
-
-
-
-              <video src={item.video} muted loop playsInline autoPlay />
+            <motion.a
+              href={item.spotifyUrl || "#"}
+              target={item.spotifyUrl && item.spotifyUrl !== "#" ? "_blank" : "_self"}
+              rel="noreferrer"
+              className="visual-card carousel-card"
+              key={`${item.title}-${index}`}
+              initial={{ opacity: 0, y: 40 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.3 }}
+              transition={{ duration: 0.7, delay: index * 0.08 }}
+            >
+              <video
+                src={item.video}
+                muted
+                loop
+                playsInline
+                autoPlay
+                preload="metadata"
+              />
 
               <div className="visual-card-info">
                 <div>
                   <h3>{item.title}</h3>
                   <p>{item.type}</p>
                 </div>
-
-            
               </div>
             </motion.a>
           ))}
@@ -222,15 +275,34 @@ function App() {
       >
         <div className="section-header">
           <p className="eyebrow">The process</p>
-          <h2><span className="text-accent">Simple </span>for the artist. <span className="text-accent">Obsessive</span> in the frames.</h2>
+          <h2>
+            <span className="text-accent">Simple </span>for the artist.{" "}
+            <span className="text-accent">Obsessive</span> in the frames.
+          </h2>
         </div>
 
         <div className="steps">
           {[
-            ["01", "Send your track", "You send the song, references and the feeling you want."],
-            ["02", "Visual direction", "We define mood, color, symbols and movement style."],
-            ["03", "Frame by frame", "I create a visual piece shaped around the rhythm."],
-            ["04", "Final delivery", "You receive files ready for socials, shows or release day."],
+            [
+              "01",
+              "Send your track",
+              "You send the song, references and the feeling you want.",
+            ],
+            [
+              "02",
+              "Visual direction",
+              "We define mood, color, symbols and movement style.",
+            ],
+            [
+              "03",
+              "Frame by frame",
+              "I create a visual piece shaped around the rhythm.",
+            ],
+            [
+              "04",
+              "Final delivery",
+              "You receive files ready for socials, shows or release day.",
+            ],
           ].map(([number, title, text], index) => (
             <motion.div
               key={number}
@@ -257,7 +329,10 @@ function App() {
       >
         <div>
           <p className="eyebrow">Start a project</p>
-          <h2>Your music deserves a <span className="text-accent"> visual identity</span>.</h2>
+          <h2>
+            Your music deserves a{" "}
+            <span className="text-accent"> visual identity</span>.
+          </h2>
           <p>
             Tell me about the track, the mood and what you want people to feel
             when they see it.

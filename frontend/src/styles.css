@@ -26,11 +26,12 @@ a {
 }
 
 .site {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: visible;
 }
 
 .hero {
-  min-height: 100vh;
+  min-height: 80vh;
   position: relative;
   display: flex;
   align-items: center;
@@ -192,11 +193,12 @@ p {
 
 .visual-card video {
   width: 100%;
-  aspect-ratio: 4 / 5;
+  aspect-ratio: 9 / 16;
   object-fit: cover;
   border-radius: 20px;
   display: block;
   margin-bottom: 16px;
+  background: #111;
 }
 
 .visual-card div {
@@ -238,7 +240,6 @@ form {
   gap: 14px;
 }
 
-
 .visual-card {
   cursor: pointer;
 }
@@ -269,14 +270,13 @@ select option {
   font-weight: 700;
 }
 
-
-
 .text-gradient {
   background: linear-gradient(90deg, #ffb088, #f5f0e8, #b18cff);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
 }
+
 .text-accent {
   color: #6dce6a;
 }
@@ -288,7 +288,37 @@ select option {
     0 0 42px rgba(255, 176, 136, 0.18);
 }
 
+.showcase-carousel {
+  display: flex;
+  gap: 22px;
+  overflow-x: auto;
+  overflow-y: visible;
+  scroll-snap-type: x mandatory;
+  padding: 12px 32px 34px;
+  margin-left: -32px;
+  margin-right: -32px;
+  scrollbar-width: thin;
+  cursor: grab;
+  -webkit-overflow-scrolling: touch;
+}
+.showcase-carousel {
+  scroll-behavior: smooth;
+}
 
+.showcase-carousel:active {
+  cursor: grabbing;
+}
+
+.showcase-carousel::before,
+.showcase-carousel::after {
+  content: "";
+  flex: 0 0 16px;
+}
+
+.showcase-carousel::after {
+  content: "";
+  flex: 0 0 24px;
+}
 
 .showcase-carousel::-webkit-scrollbar {
   height: 8px;
@@ -304,31 +334,11 @@ select option {
   border-radius: 999px;
 }
 
-.showcase-carousel {
-  display: flex;
-  gap: 22px;
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  padding: 12px 32px 34px;
-  margin-left: -32px;
-  margin-right: -32px;
-  scrollbar-width: thin;
-  cursor: grab;
-}
-
-.showcase-carousel:active {
-  cursor: grabbing;
-}
-
 .carousel-card {
   flex: 0 0 clamp(280px, 32vw, 390px);
+  min-width: clamp(280px, 32vw, 390px);
   scroll-snap-align: start;
 }
-.showcase-carousel::after {
-  content: "";
-  flex: 0 0 24px;
-}
-
 
 .visual-card-info {
   display: flex;
@@ -336,36 +346,6 @@ select option {
   justify-content: space-between;
   gap: 16px;
 }
-
-.spotify-link {
-  width: 46px;
-  height: 46px;
-  flex: 0 0 46px;
-  border-radius: 999px;
-  display: grid;
-  place-items: center;
-  background: #1db954;
-  color: #050505;
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-
-.spotify-link:hover {
-  transform: scale(1.08);
-  box-shadow: 0 0 30px rgba(29, 185, 84, .45);
-}
-
-.spotify-link svg {
-  width: 24px;
-  height: 24px;
-  fill: currentColor;
-}
-
-@media (max-width: 900px) {
-  .carousel-card {
-    flex-basis: 82vw;
-  }
-}
-
 
 @media (max-width: 900px) {
   .showcase-grid,
@@ -385,5 +365,28 @@ select option {
 
   .section {
     padding: 80px 24px;
+  }
+
+  #showcase {
+    overflow: visible;
+  }
+
+  .showcase-carousel {
+    width: 100vw;
+    max-width: none;
+    margin-left: calc(50% - 50vw);
+    margin-right: calc(50% - 50vw);
+    padding: 12px 24px 32px;
+    gap: 18px;
+  }
+
+  .carousel-card {
+    flex: 0 0 62vw;
+    min-width: 62vw;
+  }
+
+  .visual-card video {
+    aspect-ratio: 9 / 16;
+    min-height: auto;
   }
 }
